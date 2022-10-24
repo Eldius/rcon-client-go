@@ -24,18 +24,21 @@ to quickly create a Cobra application.`,
             log.Println(err)
             log.Panicln(string(debug.Stack()))
         }
+
         pl, err := c.Login("StrongP@ss")
         if err != nil {
             log.Println(err)
             log.Panicln(string(debug.Stack()))
         }
         log.Printf("login response: %v\n", pl.Body)
+
         pc, err := c.Command("help")
         if err != nil {
             log.Println(err)
             log.Panicln(string(debug.Stack()))
         }
         log.Printf("help response: %s\n", pc.ResponseBody)
+
         pe, err := c.Command("echo message")
         if err != nil {
             log.Println(err)

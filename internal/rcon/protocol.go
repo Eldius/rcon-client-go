@@ -3,6 +3,7 @@ package rcon
 import (
     "bytes"
     "encoding/binary"
+    "errors"
     "fmt"
     "log"
     "net"
@@ -73,6 +74,9 @@ func (c *Client) exec(p *Packet) (*Packet, error) {
     if err := c.Read(p); err != nil {
         return nil, err
     }
+    if p.IsValid() {
+        return p, errors.New("invalid response")
+    }
     return p, nil
 }
 
@@ -116,6 +120,19 @@ func (p *Packet) ToBytes() ([]byte, error) {
     // Write command body, null terminated ASCII string and an empty ASCIIZ string.
     buffer.Write(append(p.Body, EmptyByte, EmptyByte))
     return buffer.Bytes(), nil
+}
+
+/*
+IsValid validates execution result
+Validations:
+- request and response have the same response ID
+- response has a valid type for an auth request
+- response has a valid type for a command execution request
+*/
+func (p *Packet) IsValid() bool {
+    return p.ID == p.ResponseID && // has the same response ID
+        ((p.Type == ServerDataAuth && p.ResponseType == ServerDataAuthResponse) || // has a valid auth response
+            (p.Type == ServerDataExecCommand && p.ResponseType == ServerDataResponseValue)) // has a valid execution response
 }
 
 /*

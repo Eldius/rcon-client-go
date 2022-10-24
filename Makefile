@@ -37,3 +37,5 @@ run:
 	-rm exec.log
 	go run cmd/cli/main.go test
 
+test:
+	go test ./... -cover
