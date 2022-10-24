@@ -8,14 +8,17 @@ import (
     "net"
 )
 
+// ServerDataType represents the request type
 type ServerDataType int32
 
+// Client is the client implementation
 type Client struct {
     host   string
     currID int32
     conn   net.Conn
 }
 
+// Packet is the command packet (including request and response data
 type Packet struct {
     Size         int32
     Type         ServerDataType
@@ -38,6 +41,7 @@ func newPecket(id int32, t ServerDataType, b string) *Packet {
     }
 }
 
+// NewClient creates a new Client
 func NewClient(host string) (*Client, error) {
     conn, err := net.Dial("tcp", host)
     if err != nil {
@@ -50,11 +54,13 @@ func NewClient(host string) (*Client, error) {
     }, nil
 }
 
+// Command executes a command
 func (c *Client) Command(cmd string) (*Packet, error) {
     p := newPecket(c.nextID(), ServerDataExecCommand, cmd)
     return c.exec(p)
 }
 
+// Login logs in to the server
 func (c *Client) Login(passwd string) (*Packet, error) {
     p := newPecket(c.nextID(), ServerDataAuth, passwd)
     return c.exec(p)
@@ -90,15 +96,17 @@ func (c *Client) nextID() int32 {
     return id
 }
 
+/*
+ToBytes encodes the packet to send to server
+  | Request packet structure |
+  |--------|---------------------------------------------------------------|
+  | Size   |      32-bit little-endian, Signed Integer	Varies, see below. |
+  | ID     |      32-bit little-endian, Signed Integer	Varies, see below. |
+  | Type   |      32-bit little-endian, Signed Integer	Varies, see below. |
+  | Body   |      Null-terminated ASCII, String	Varies, see below.         |
+  | Empty  |      String, Null-terminated, ASCII String	0x00               |
+*/
 func (p *Packet) ToBytes() ([]byte, error) {
-    /**
-      ## Packet structure
-      Size        32-bit little-endian Signed Integer	Varies, see below.
-      ID          32-bit little-endian Signed Integer	Varies, see below.
-      Type        32-bit little-endian Signed Integer	Varies, see below.
-      Body        Null-terminated ASCII String	Varies, see below.
-      Empty       String	Null-terminated ASCII String	0x00
-    */
     buffer := bytes.NewBuffer(make([]byte, 0, p.Size+4))
 
     _ = binary.Write(buffer, binary.LittleEndian, p.Size)
@@ -106,10 +114,19 @@ func (p *Packet) ToBytes() ([]byte, error) {
     _ = binary.Write(buffer, binary.LittleEndian, p.Type)
 
     // Write command body, null terminated ASCII string and an empty ASCIIZ string.
-    buffer.Write(append(p.Body, 0x00, 0x00))
+    buffer.Write(append(p.Body, EmptyByte, EmptyByte))
     return buffer.Bytes(), nil
 }
 
+/*
+Read reads data from server
+  ## Response packet structure
+  Size        32-bit little-endian Signed Integer	Varies, see below.
+  ID          32-bit little-endian Signed Integer	Varies, see below.
+  Type        32-bit little-endian Signed Integer	Varies, see below.
+  Body        Null-terminated ASCII String	Varies, see below.
+  Empty       String	Null-terminated ASCII String	0x00
+*/
 func (c *Client) Read(p *Packet) error {
     if err := binary.Read(c.conn, binary.LittleEndian, &p.ResponseSize); err != nil {
         return fmt.Errorf("rcon: read Packet size: %w", err)
