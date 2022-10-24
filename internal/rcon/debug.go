@@ -1,0 +1,4 @@
+package rcon
+
+func init() {
+}
