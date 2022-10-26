@@ -37,5 +37,9 @@ run:
 	-rm exec.log
 	go run cmd/cli/main.go test
 
+console:
+	-rm exec.log
+	go run cmd/cli/main.go console -s localhost:27015
+
 test:
 	go test ./... -cover
