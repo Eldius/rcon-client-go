@@ -6,6 +6,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -34,14 +35,8 @@ var consoleCmd = &cobra.Command{
 		}
 		fmt.Println("Logged in  successfully.")
 		for {
-			fmt.Print("$: ")
-			reader := bufio.NewReader(os.Stdin)
-			command, err := reader.ReadString('\n')
-			if err != nil {
-				fmt.Println("Failed to read command:", err)
-				os.Exit(1)
-			}
-			if "exit" == command || "quit" == command {
+			command, err := readCommand("$: ")
+			if ("exit" == command) || ("quit" == command) {
 				fmt.Println("Closing console...")
 				os.Exit(0)
 			}
@@ -53,6 +48,17 @@ var consoleCmd = &cobra.Command{
 			fmt.Printf("%s\n", res.ResponseBody)
 		}
 	},
+}
+
+func readCommand(prompt string) (string, error) {
+	fmt.Print(prompt)
+	reader := bufio.NewReader(os.Stdin)
+	command, err := reader.ReadString('\n')
+	if err != nil {
+		return "", err
+	}
+	command = strings.TrimSuffix(command, "\n")
+	return command, err
 }
 
 var (
