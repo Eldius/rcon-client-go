@@ -18,6 +18,8 @@ start-testserver: build-testserver
 		--rm \
 		-it \
 		-d \
+		-m 512m \
+		--cpus=0.5 \
 		-e "SERVER_PASS=StrongP@ss" \
 		-p 27015:27015 \
 		--name test \
@@ -28,6 +30,8 @@ start-mineserver: build-mineserver
 	docker run \
 		--rm \
 		-it \
+		-m 1g \
+		--cpus=1.0 \
 		-d \
 		-p 27015:27015 \
 		--name mine \
@@ -40,6 +44,10 @@ run:
 console:
 	-rm exec.log
 	go run cmd/cli/main.go console -s localhost:27015
+
+console-rpi:
+	-rm exec.log
+	go run cmd/cli/main.go console -s 192.168.0.12:27015
 
 test:
 	go test ./... -cover

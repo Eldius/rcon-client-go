@@ -1,3 +1,6 @@
+/*
+Package helper holds some helper functions
+*/
 package helper
 
 import (
@@ -7,8 +10,9 @@ import (
 	"syscall"
 )
 
+// AskForPassword password ask helper function
 func AskForPassword(prompt string) (string, error) {
-	fmt.Print(prompt)
+	fmt.Printf("%s ", prompt)
 	bytePassword, err := term.ReadPassword(int(syscall.Stdin))
 	if err != nil {
 		return "", err

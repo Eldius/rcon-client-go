@@ -5,6 +5,7 @@ import (
 	"bitbucket.com/eldius/rcon-client-go/internal/rcon"
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 
@@ -14,8 +15,8 @@ import (
 // consoleCmd represents the console command
 var consoleCmd = &cobra.Command{
 	Use:   "console",
-	Short: "Opens an RCON console",
-	Long:  `Opens an RCON console.`,
+	Short: "Opens an RCON interactive console",
+	Long:  `Opens an RCON interactive console.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("console called")
 		c, err := rcon.NewClient(consoleHost)
@@ -23,6 +24,12 @@ var consoleCmd = &cobra.Command{
 			fmt.Println("Failed to connect:", err)
 			os.Exit(1)
 		}
+		defer func(c *rcon.Client) {
+			err := c.Close()
+			if err != nil {
+				log.Println("Failed to disconnect from server:", err)
+			}
+		}(c)
 		pass, err := helper.AskForPassword("server password:")
 		if err != nil {
 			fmt.Println("Failed to get password:", err)
@@ -36,6 +43,10 @@ var consoleCmd = &cobra.Command{
 		fmt.Println("Logged in  successfully.")
 		for {
 			command, err := readCommand("$: ")
+			if err != nil {
+				fmt.Println("Failed to read command:", err)
+				os.Exit(1)
+			}
 			if ("exit" == command) || ("quit" == command) {
 				fmt.Println("Closing console...")
 				os.Exit(0)
@@ -45,7 +56,7 @@ var consoleCmd = &cobra.Command{
 				fmt.Println("Failed to execute command:", err)
 				os.Exit(1)
 			}
-			fmt.Printf("%s\n", res.ResponseBody)
+			fmt.Println(res.String())
 		}
 	},
 }
