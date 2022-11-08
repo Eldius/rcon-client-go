@@ -86,7 +86,6 @@ func (p *Packet) ResponseBodyAsString() string {
 
 // String creates a string representation of this package
 func (p *Packet) String() string {
-	//buff := bytes.NewBuffer(make([]byte, 0))
 	var buff bytes.Buffer
 	if err := tmpl.ExecuteTemplate(&buff, "packet.tpl", p); err != nil {
 		panic(err)
@@ -99,10 +98,11 @@ type Client struct {
 	host   string
 	currID int32
 	conn   net.Conn
+	debug  bool
 }
 
 // NewClient creates a new Client
-func NewClient(host string) (*Client, error) {
+func NewClient(host string, debug bool) (*Client, error) {
 	conn, err := net.Dial("tcp", host)
 	if err != nil {
 		return nil, err
@@ -111,6 +111,7 @@ func NewClient(host string) (*Client, error) {
 		host:   host,
 		currID: 1,
 		conn:   conn,
+		debug:  debug,
 	}, nil
 }
 
@@ -149,8 +150,11 @@ func (c *Client) sendPacket(p *Packet) error {
 	if err != nil {
 		return err
 	}
-	//log.Printf("[string] sending msg: '%s'\n", enc)
-	//log.Printf("[byte]   sending msg: %v\n", enc)
+
+	if c.debug {
+		log.Printf("[string] sending msg: '%s'\n", enc)
+		log.Printf("[byte]   sending msg: %v\n", enc)
+	}
 	_, err = c.conn.Write(enc)
 	if err != nil {
 		return err
@@ -161,7 +165,9 @@ func (c *Client) sendPacket(p *Packet) error {
 func (c *Client) nextID() int32 {
 	id := c.currID
 	c.currID++
-	log.Printf("current id: %d => next id: %d\n", id, c.currID)
+	if c.debug {
+		log.Printf("current id: %d => next id: %d\n", id, c.currID)
+	}
 	return id
 }
 

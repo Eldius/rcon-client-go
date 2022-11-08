@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bitbucket.com/eldius/rcon-client-go/internal/config"
 	"bitbucket.com/eldius/rcon-client-go/internal/helper"
 	"bitbucket.com/eldius/rcon-client-go/internal/rcon"
 	"bufio"
@@ -19,7 +20,7 @@ var consoleCmd = &cobra.Command{
 	Long:  `Opens an RCON interactive console.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("console called")
-		c, err := rcon.NewClient(consoleHost)
+		c, err := rcon.NewClient(consoleHost, config.DebugMode())
 		if err != nil {
 			fmt.Println("Failed to connect:", err)
 			os.Exit(1)
@@ -32,20 +33,27 @@ var consoleCmd = &cobra.Command{
 		}(c)
 		pass, err := helper.AskForPassword("server password:")
 		if err != nil {
-			fmt.Println("Failed to get password:", err)
+			log.Println("Failed to get password:", err)
 			os.Exit(1)
 		}
 		_, err = c.Login(pass)
 		if err != nil {
-			fmt.Println("Failed to log in:", err)
+			log.Println("Failed to log in:", err)
 			os.Exit(1)
 		}
 		fmt.Println("Logged in  successfully.")
 		for {
 			command, err := readCommand("$: ")
 			if err != nil {
-				fmt.Println("Failed to read command:", err)
+				log.Println("Failed to read command:", err)
 				os.Exit(1)
+			}
+			//command = strings.Trim(command, "\n")
+			if config.DebugMode() {
+				log.Println("-- debug -----")
+				log.Printf("cmd as byte: -->%v<--\n", []byte(command))
+				log.Printf("cmd as string: -->%s<--\n", command)
+				log.Println("--------------")
 			}
 			if ("exit" == command) || ("quit" == command) {
 				fmt.Println("Closing console...")
@@ -68,7 +76,8 @@ func readCommand(prompt string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	command = strings.TrimSuffix(command, "\n")
+	command = strings.Trim(command, "\n")
+	command = strings.Trim(command, "\r") // to run in Windows OS
 	return command, err
 }
 

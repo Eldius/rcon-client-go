@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bitbucket.com/eldius/rcon-client-go/internal/config"
 	"fmt"
 	"os"
 	"runtime/debug"
@@ -21,7 +22,7 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		//c, err := rcon.NewClient("192.168.0.12:25575")
-		c, err := rcon.NewClient("127.0.0.1:27015")
+		c, err := rcon.NewClient("127.0.0.1:27015", config.DebugMode())
 		if err != nil {
 			fmt.Println(err)
 			fmt.Println(string(debug.Stack()))

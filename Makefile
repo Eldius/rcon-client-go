@@ -39,15 +39,15 @@ start-mineserver: build-mineserver
 
 run:
 	-rm exec.log
-	go run cmd/cli/main.go test
+	go run cmd/cli/main.go test --debug
 
 console:
 	-rm exec.log
-	go run cmd/cli/main.go console -s localhost:27015
+	go run cmd/cli/main.go console -s localhost:27015 --debug
 
 console-rpi:
 	-rm exec.log
-	go run cmd/cli/main.go console -s 192.168.0.12:27015
+	go run cmd/cli/main.go console -s 192.168.0.12:25575 --debug
 
 test:
 	go test ./... -cover
