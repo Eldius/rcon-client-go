@@ -48,13 +48,10 @@ var consoleCmd = &cobra.Command{
 				log.Println("Failed to read command:", err)
 				os.Exit(1)
 			}
-			//command = strings.Trim(command, "\n")
-			if config.DebugMode() {
-				log.Println("-- debug -----")
-				log.Printf("cmd as byte: -->%v<--\n", []byte(command))
-				log.Printf("cmd as string: -->%s<--\n", command)
-				log.Println("--------------")
-			}
+			consoleDebug(
+				fmt.Sprintf("cmd as byte:   -->%v<--", []byte(command)),
+				fmt.Sprintf("cmd as string: -->%s<--", command))
+
 			if ("exit" == command) || ("quit" == command) {
 				fmt.Println("Closing console...")
 				os.Exit(0)
@@ -67,6 +64,16 @@ var consoleCmd = &cobra.Command{
 			fmt.Println(res.String())
 		}
 	},
+}
+
+func consoleDebug(msgs ...string) {
+	if config.DebugMode() {
+		log.Println("[console] -- console debug -----")
+		for _, msg := range msgs {
+			log.Printf("[console] %s\n", msg)
+		}
+		log.Println("[console] --------------------")
+	}
 }
 
 func readCommand(prompt string) (string, error) {
