@@ -151,10 +151,9 @@ func (c *Client) sendPacket(p *Packet) error {
 		return err
 	}
 
-	if c.debug {
-		log.Printf("[string] sending msg: '%s'\n", enc)
-		log.Printf("[byte]   sending msg: %v\n", enc)
-	}
+	c.debugLog(fmt.Sprintf("[string] sending msg: '%s'", enc),
+		fmt.Sprintf("[byte]   sending msg: %v", enc))
+
 	_, err = c.conn.Write(enc)
 	if err != nil {
 		return err
@@ -165,9 +164,7 @@ func (c *Client) sendPacket(p *Packet) error {
 func (c *Client) nextID() int32 {
 	id := c.currID
 	c.currID++
-	if c.debug {
-		log.Printf("current id: %d => next id: %d\n", id, c.currID)
-	}
+	c.debugLog(fmt.Sprintf("current id: %d => next id: %d", id, c.currID))
 	return id
 }
 
@@ -249,4 +246,14 @@ func (c *Client) Read(p *Packet) error {
 	//log.Printf("- response body: %v\n", p.ResponseBody)
 
 	return nil
+}
+
+func (c *Client) debugLog(msgs ...string) {
+	if c.debug {
+		log.Println("[DEBUG] -- debug -----")
+		for _, msg := range msgs {
+			log.Printf("[DEBUG] %s\n", msg)
+		}
+		log.Println("[DEBUG] --------------")
+	}
 }
