@@ -13,7 +13,7 @@ import (
 // AskForPassword password ask helper function
 func AskForPassword(prompt string) (string, error) {
 	fmt.Printf("%s ", prompt)
-	bytePassword, err := term.ReadPassword(int(syscall.Stdin))
+	bytePassword, err := term.ReadPassword(syscall.Stdin)
 	if err != nil {
 		return "", err
 	}
