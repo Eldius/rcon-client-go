@@ -151,7 +151,8 @@ func (c *Client) sendPacket(p *Packet) error {
 		return err
 	}
 
-	c.debugLog(fmt.Sprintf("[string] sending msg: '%s'", enc),
+	c.debugLog(
+		fmt.Sprintf("[string] sending msg: '%s'", enc),
 		fmt.Sprintf("[byte]   sending msg: %v", enc))
 
 	_, err = c.conn.Write(enc)
