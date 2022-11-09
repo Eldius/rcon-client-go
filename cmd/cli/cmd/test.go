@@ -6,7 +6,7 @@ import (
 	"os"
 	"runtime/debug"
 
-	"bitbucket.com/eldius/rcon-client-go/internal/rcon"
+	"bitbucket.com/eldius/rcon-client-go/internal/protocol"
 	"github.com/spf13/cobra"
 )
 
@@ -21,8 +21,8 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		//c, err := rcon.NewClient("192.168.0.12:25575")
-		c, err := rcon.NewClient("127.0.0.1:27015", config.DebugMode())
+		//c, err := protocol.NewClient("192.168.0.12:25575")
+		c, err := protocol.NewClient("127.0.0.1:27015", config.DebugMode())
 		if err != nil {
 			fmt.Println(err)
 			fmt.Println(string(debug.Stack()))

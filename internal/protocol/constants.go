@@ -1,7 +1,7 @@
 /*
-Package rcon has the protocol specific implementations
+Package protocol has the protocol specific implementations
 */
-package rcon
+package protocol
 
 const (
 	// RequestTypeAuthRequest represents an auth request from client
