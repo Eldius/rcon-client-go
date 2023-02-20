@@ -2,30 +2,71 @@ package protocol
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"log"
 	"net"
+	"strings"
 )
 
-// Client is the client implementation
-type Client struct {
+type ClientOptions struct {
 	host   string
 	currID int32
 	conn   net.Conn
 	debug  bool
 }
 
+type Options func(*ClientOptions)
+
+/*
+WithHost sets client host
+*/
+func WithHost(host string) Options {
+	return func(opts *ClientOptions) {
+		opts.host = strings.Trim(host, " ")
+	}
+}
+
+/*
+WithDebugLog sets client debug mode
+*/
+func WithDebugLog(debug bool) Options {
+	return func(opts *ClientOptions) {
+		opts.debug = debug
+	}
+}
+
+/*
+WithID sets client ID
+*/
+func WithID(id int32) Options {
+	return func(opts *ClientOptions) {
+		opts.currID = id
+	}
+}
+
+// Client is the client implementation
+type Client struct {
+	opt  *ClientOptions
+	conn net.Conn
+}
+
 // NewClient creates a new Client
-func NewClient(host string, debug bool) (*Client, error) {
-	conn, err := net.Dial("tcp", host)
+func NewClient(cfg ...Options) (*Client, error) {
+	o := ClientOptions{}
+	for _, c := range cfg {
+		c(&o)
+	}
+	if o.host == "" {
+		return nil, errors.New("host must not be empty")
+	}
+	conn, err := net.Dial("tcp", o.host)
 	if err != nil {
 		return nil, err
 	}
 	return &Client{
-		host:   host,
-		currID: 1,
-		conn:   conn,
-		debug:  debug,
+		opt:  &o,
+		conn: conn,
 	}, nil
 }
 
@@ -121,14 +162,14 @@ func (c *Client) writePacket(p *Packet) error {
 }
 
 func (c *Client) nextID() int32 {
-	id := c.currID
-	c.currID++
-	c.debugLog(fmt.Sprintf("current id: %d => next id: %d", id, c.currID))
+	id := c.opt.currID
+	c.opt.currID++
+	c.debugLog(fmt.Sprintf("current id: %d => next id: %d", id, c.opt.currID))
 	return id
 }
 
 func (c *Client) debugLog(msgs ...string) {
-	if c.debug {
+	if c.opt.debug {
 		log.Println("[DEBUG] -- debug -----")
 		for _, msg := range msgs {
 			log.Printf("[DEBUG] %s\n", msg)

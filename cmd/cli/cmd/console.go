@@ -1,9 +1,9 @@
 package cmd
 
 import (
+	"bitbucket.com/eldius/rcon-client-go/helper"
 	"bitbucket.com/eldius/rcon-client-go/internal/config"
-	"bitbucket.com/eldius/rcon-client-go/internal/helper"
-	"bitbucket.com/eldius/rcon-client-go/internal/protocol"
+	"bitbucket.com/eldius/rcon-client-go/protocol"
 	"bufio"
 	"fmt"
 	"log"
@@ -20,7 +20,7 @@ var consoleCmd = &cobra.Command{
 	Long:  `Opens an RCON interactive console.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("console called")
-		c, err := protocol.NewClient(consoleHost, config.DebugMode())
+		c, err := protocol.NewClient(protocol.WithHost(consoleHost), protocol.WithDebugLog(config.DebugMode()))
 		if err != nil {
 			fmt.Println("Failed to connect:", err)
 			os.Exit(1)
