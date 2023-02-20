@@ -3,13 +3,13 @@ package cmd
 import (
 	"bitbucket.com/eldius/rcon-client-go/helper"
 	"bitbucket.com/eldius/rcon-client-go/internal/config"
+	"bitbucket.com/eldius/rcon-client-go/internal/output"
 	"bitbucket.com/eldius/rcon-client-go/protocol"
-	"bufio"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
+	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )
 
@@ -19,33 +19,38 @@ var consoleCmd = &cobra.Command{
 	Short: "Opens an RCON interactive console",
 	Long:  `Opens an RCON interactive console.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("console called")
-		c, err := protocol.NewClient(protocol.WithHost(consoleHost), protocol.WithDebugLog(config.DebugMode()))
+		if config.DebugMode() {
+			pterm.EnableDebugMessages()
+		}
+
+		pterm.DefaultBasicText.Println("Starting console")
+		c, err := protocol.NewClient(protocol.WithHost(consoleHost), protocol.WithDebugLog(config.DebugMode()), protocol.WithWriter(&output.MyWriter{}))
 		if err != nil {
-			fmt.Println("Failed to connect:", err)
+			pterm.Error.Println("Failed to connect:", err)
 			os.Exit(1)
 		}
 		defer func(c *protocol.Client) {
 			err := c.Close()
 			if err != nil {
-				log.Println("Failed to disconnect from server:", err)
+				pterm.Error.Println("Failed to disconnect from server:", err)
 			}
 		}(c)
 		pass, err := helper.AskForPassword("server password:")
 		if err != nil {
-			log.Println("Failed to get password:", err)
+			pterm.Error.Println("Failed to get password:", err)
 			os.Exit(1)
 		}
 		_, err = c.Login(pass)
 		if err != nil {
-			log.Println("Failed to log in:", err)
+			pterm.Error.Println("Failed to log in:", err)
 			os.Exit(1)
 		}
-		fmt.Println("Logged in  successfully.")
+		pterm.DefaultHeader.FullWidth = true
+		pterm.DefaultHeader.Println("Connected")
 		for {
 			command, err := readCommand("$: ")
 			if err != nil {
-				log.Println("Failed to read command:", err)
+				pterm.Error.Println("Failed to read command:", err)
 				os.Exit(1)
 			}
 			consoleDebug(
@@ -53,36 +58,54 @@ var consoleCmd = &cobra.Command{
 				fmt.Sprintf("cmd as string: -->%s<--", command))
 
 			if ("exit" == command) || ("quit" == command) {
-				fmt.Println("Closing console...")
+				pterm.Info.Println("Closing console...")
 				os.Exit(0)
 			}
 			res, err := c.Command(command)
 			if err != nil {
-				fmt.Println("Failed to execute command:", err)
+				pterm.Error.Println("Failed to execute command:", err)
 				os.Exit(1)
 			}
-			fmt.Println(res.String())
+			showCommandOutput(res)
 		}
 	},
 }
 
+func showCommandOutput(p *protocol.Packet) {
+	pterm.DefaultHeader.Println("Execution result")
+	pterm.DefaultBasicText.Printfln("id:       %d => %d", p.ID, p.ResponseID)
+	pterm.DefaultBasicText.Printfln("type:     %s => %s", p.Type, p.ResponseType)
+	pterm.DefaultBasicText.Printfln("cmd:      %s", p.Body)
+	pterm.DefaultBasicText.Printfln("response: %s", p.ResponseBody)
+
+}
+
 func consoleDebug(msgs ...string) {
 	if config.DebugMode() {
-		log.Println("[console] -- console debug -----")
+		pterm.Info.Println("[console] -- console debug -----")
 		for _, msg := range msgs {
-			log.Printf("[console] %s\n", msg)
+			pterm.Info.Printfln("[console] %s", msg)
 		}
-		log.Println("[console] --------------------")
+		pterm.Info.Println("[console] --------------------")
 	}
 }
 
 func readCommand(prompt string) (string, error) {
-	fmt.Print(prompt)
-	reader := bufio.NewReader(os.Stdin)
-	command, err := reader.ReadString('\n')
+	command, err := pterm.DefaultInteractiveTextInput.WithMultiLine(false).Show(prompt)
 	if err != nil {
-		return "", err
+		pterm.Error.Println("Failed to read command:", err)
+		os.Exit(1)
 	}
+
+	pterm.Println() // Blank line
+	//pterm.Info.Printfln("You answered: %s", result)
+	//
+	//fmt.Print(prompt)
+	//reader := bufio.NewReader(os.Stdin)
+	//command, err := reader.ReadString('\n')
+	//if err != nil {
+	//	return "", err
+	//}
 	command = strings.Trim(command, "\n")
 	command = strings.Trim(command, "\r") // to run in Windows OS
 	return command, err

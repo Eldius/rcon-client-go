@@ -9,11 +9,27 @@ import (
 	"strings"
 )
 
+type Writer interface {
+	// Write writes debug log
+	Write(msgs ...string)
+}
+
+type defaultWriter struct{}
+
+func (w *defaultWriter) Write(msgs ...string) {
+	log.Println("[DEBUG] -- debug -----")
+	for _, msg := range msgs {
+		log.Printf("[DEBUG] %s\n", msg)
+	}
+	log.Println("[DEBUG] --------------")
+}
+
 type ClientOptions struct {
 	host   string
 	currID int32
 	conn   net.Conn
 	debug  bool
+	w      Writer
 }
 
 type Options func(*ClientOptions)
@@ -45,6 +61,15 @@ func WithID(id int32) Options {
 	}
 }
 
+/*
+WithWriter sets a custom log writer
+*/
+func WithWriter(w Writer) Options {
+	return func(opts *ClientOptions) {
+		opts.w = w
+	}
+}
+
 // Client is the client implementation
 type Client struct {
 	opt  *ClientOptions
@@ -59,6 +84,10 @@ func NewClient(cfg ...Options) (*Client, error) {
 	}
 	if o.host == "" {
 		return nil, errors.New("host must not be empty")
+	}
+	if o.w == nil {
+		log.Println("Using default writer...")
+		o.w = &defaultWriter{}
 	}
 	conn, err := net.Dial("tcp", o.host)
 	if err != nil {
@@ -123,7 +152,7 @@ func (c *Client) readPacket(p *Packet) error {
 	c.debugLog(
 		fmt.Sprintf("- response size: %d", p.ResponseSize),
 		fmt.Sprintf("- response id: %d", p.ResponseID),
-		fmt.Sprintf("- response type: %d", p.ResponseType),
+		fmt.Sprintf("- response type: %s", p.ResponseType),
 		fmt.Sprintf("- expected body size: %d", expectedBodySize))
 	//fmt.Sprintf("- response body: %s", p.ResponseBody),
 	//fmt.Sprintf("- response body: %v", p.ResponseBody))
@@ -170,10 +199,6 @@ func (c *Client) nextID() int32 {
 
 func (c *Client) debugLog(msgs ...string) {
 	if c.opt.debug {
-		log.Println("[DEBUG] -- debug -----")
-		for _, msg := range msgs {
-			log.Printf("[DEBUG] %s\n", msg)
-		}
-		log.Println("[DEBUG] --------------")
+		c.opt.w.Write(msgs...)
 	}
 }

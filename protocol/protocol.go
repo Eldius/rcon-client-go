@@ -25,6 +25,30 @@ type RequestType int32
 // ResponseType represents the server response type
 type ResponseType int32
 
+// String returns a request type as a human-readable value
+func (t RequestType) String() string {
+	switch t {
+	case RequestTypeAuthRequest:
+		return "auth request"
+	case RequestTypeCommandRequest:
+		return "command request"
+	default:
+		return fmt.Sprintf("%d", t)
+	}
+}
+
+// String returns a response type as a human-readable value
+func (t ResponseType) String() string {
+	switch t {
+	case ResponseTypeAuth:
+		return "auth response"
+	case ResponseTypeCommand:
+		return "command response"
+	default:
+		return fmt.Sprintf("%d", t)
+	}
+}
+
 // Packet is the command packet (including request and response data
 type Packet struct {
 	Size         int32
@@ -50,26 +74,12 @@ func newPecket(id int32, t RequestType, b string) *Packet {
 
 // TypeAsString returns a request type as a human-readable value
 func (p *Packet) TypeAsString() string {
-	switch p.Type {
-	case RequestTypeAuthRequest:
-		return "auth request"
-	case RequestTypeCommandRequest:
-		return "command request"
-	default:
-		return fmt.Sprintf("%d", p.Type)
-	}
+	return p.Type.String()
 }
 
 // ResponseTypeAsString returns a response type as a human-readable value
 func (p *Packet) ResponseTypeAsString() string {
-	switch p.ResponseType {
-	case ResponseTypeAuth:
-		return "auth response"
-	case ResponseTypeCommand:
-		return "command response"
-	default:
-		return fmt.Sprintf("%d", p.ResponseType)
-	}
+	return p.ResponseType.String()
 }
 
 // BodyAsString returns request body content as string
