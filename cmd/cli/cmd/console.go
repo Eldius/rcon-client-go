@@ -6,6 +6,7 @@ import (
 	"bitbucket.com/eldius/rcon-client-go/internal/output"
 	"bitbucket.com/eldius/rcon-client-go/protocol"
 	"fmt"
+	"github.com/pterm/pterm/putils"
 	"os"
 	"strings"
 
@@ -23,7 +24,11 @@ var consoleCmd = &cobra.Command{
 			pterm.EnableDebugMessages()
 		}
 
-		pterm.DefaultBasicText.Println("Starting console")
+		s, err := pterm.DefaultBigText.WithLetters(putils.LettersFromStringWithRGB("rcon console", pterm.NewRGB(0, 9, 0))).Srender()
+		if err != nil {
+			pterm.Error.Println("Failed to start output:", err)
+		}
+		pterm.DefaultCenter.Println(pterm.Green(s))
 		c, err := protocol.NewClient(protocol.WithHost(consoleHost), protocol.WithDebugLog(config.DebugMode()), protocol.WithWriter(&output.MyWriter{}))
 		if err != nil {
 			pterm.Error.Println("Failed to connect:", err)
@@ -82,11 +87,11 @@ func showCommandOutput(p *protocol.Packet) {
 
 func consoleDebug(msgs ...string) {
 	if config.DebugMode() {
-		pterm.Info.Println("[console] -- console debug -----")
+		pterm.Debug.Println(pterm.Blue("[console] -- console debug -----"))
 		for _, msg := range msgs {
-			pterm.Info.Printfln("[console] %s", msg)
+			pterm.Debug.Printfln(pterm.Blue(pterm.Sprintf("[console] %s", msg)))
 		}
-		pterm.Info.Println("[console] --------------------")
+		pterm.Debug.Println(pterm.Blue("[console] --------------------"))
 	}
 }
 
