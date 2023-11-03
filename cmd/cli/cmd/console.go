@@ -103,14 +103,6 @@ func readCommand(prompt string) (string, error) {
 	}
 
 	pterm.Println() // Blank line
-	//pterm.Info.Printfln("You answered: %s", result)
-	//
-	//fmt.Print(prompt)
-	//reader := bufio.NewReader(os.Stdin)
-	//command, err := reader.ReadString('\n')
-	//if err != nil {
-	//	return "", err
-	//}
 	command = strings.Trim(command, "\n")
 	command = strings.Trim(command, "\r") // to run in Windows OS
 	return command, err

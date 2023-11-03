@@ -27,7 +27,6 @@ func (w *defaultWriter) Write(msgs ...string) {
 type ClientOptions struct {
 	host   string
 	currID int32
-	conn   net.Conn
 	debug  bool
 	w      Writer
 }
