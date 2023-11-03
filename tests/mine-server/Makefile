@@ -8,4 +8,9 @@
 
 
 build-testserver: .tmp/server.jar
-	docker build -t $(SERVER_TAG) .
+	docker \
+		buildx \
+		build \
+			--no-cache \
+			--tag eldius/mine-rcon-server:latest \
+				.

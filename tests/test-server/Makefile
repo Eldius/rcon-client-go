@@ -1,3 +1,8 @@
 
 build-testserver:
-	docker build -t $(SERVER_TAG) .
+	docker \
+		buildx \
+		build \
+			--no-cache \
+			--tag eldius/test-rcon-server:latest \
+				.

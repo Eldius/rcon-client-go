@@ -1,11 +1,11 @@
 
-TEST_SERVER_TAG := test-rcon-server
-MINE_SERVER_TAG := mine-rcon-server
+TEST_SERVER_TAG := eldius/test-rcon-server:latest
+MINE_SERVER_TAG := eldius/mine-rcon-server:latest
 MINE_SERVER_PATH := $(PWD)/tests/mine-server
 TEST_SERVER_PATH := $(PWD)/tests/test-server
 
 build-testserver:
-	cd $(TEST_SERVER_PATH) ; $(MAKE) -C $(TEST_SERVER_PATH) -f $(TEST_SERVER_PATH)/Makefile  build-testserver SERVER_TAG=$(TEST_SERVER_TAG)
+	cd $(TEST_SERVER_PATH) ; $(MAKE) -C $(TEST_SERVER_PATH) -f $(TEST_SERVER_PATH)/Makefile  build-testserver
 
 
 build-mineserver:
@@ -31,7 +31,7 @@ start-mineserver: build-mineserver
 		--rm \
 		-it \
 		-m 1g \
-		--cpus=1.0 \
+		--cpus=2.0 \
 		-d \
 		-p 27015:27015 \
 		--name mine \
@@ -47,7 +47,7 @@ console:
 
 console-rpi:
 	-rm exec.log
-	go run cmd/cli/main.go console -s 192.168.0.12:25575 --debug
+	go run cmd/cli/main.go console -s 192.168.100.183:25575 --debug
 
 test:
 	go test ./... -cover
